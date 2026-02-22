@@ -27,6 +27,7 @@ import Compfiles.Imo1964P2
 import Compfiles.Imo1964P4
 import Compfiles.Imo1965P1
 import Compfiles.Imo1965P2
+import Compfiles.Imo1965P4
 import Compfiles.Imo1966P1
 import Compfiles.Imo1966P4
 import Compfiles.Imo1966P5

@@ -68,8 +68,7 @@ theorem root_of_sign_flip {α : Type} [ConditionallyCompleteLinearOrder α] [Top
           have := hs fann
           rw [<-neg_mul_neg]
           apply le_mul_of_le_mul_of_nonneg_right (b:=-f b)
-          · simp [<-sq]
-            apply sq_nonneg
+          · exact mul_self_nonneg _
           · simp [le_of_lt fafb]
           · simp [this]
       exact this hz
@@ -86,8 +85,7 @@ theorem root_of_sign_flip {α : Type} [ConditionallyCompleteLinearOrder α] [Top
           have := hs fann
           rw [<-neg_mul_neg]
           apply le_mul_of_le_mul_of_nonneg_left (c:=-f a)
-          · simp [<-sq]
-            apply sq_nonneg
+          · exact mul_self_nonneg _
           · simp [fafb]
           · simp [this]
       exact this hz
@@ -223,10 +221,10 @@ noncomputable def makePlot (n : ℕ) (npos : 0 < n) : NicePlotOfP n npos :=
         rw [eval_comp]
         rw [@NicePlotOfP.y_eq (n+1)]
         simp only [eval_sub, eval_pow, eval_X, eval_ofNat]
-        rw [(neg_one_pow_eq_one_iff_even (by linarith)).mpr pa]
+        rw [(neg_one_pow_eq_one_iff_even (by norm_num)).mpr pa]
         rw [mul_pow, <-pow_mul]
         rw [(neg_one_pow_eq_one_iff_even (by linarith)).mpr _]
-        · linarith
+        · norm_num
         · simp
       · conv =>
           lhs
@@ -240,7 +238,7 @@ noncomputable def makePlot (n : ℕ) (npos : 0 < n) : NicePlotOfP n npos :=
           rw [<-IsRoot]
           apply NicePlotOfP.findRoot.spec_root
         }]
-        rw [(neg_one_pow_eq_neg_one_iff_odd (by linarith)).mpr (Nat.not_even_iff_odd.mp pa)]
+        rw [(neg_one_pow_eq_neg_one_iff_odd (by norm_num)).mpr (Nat.not_even_iff_odd.mp pa)]
         simp
     x_first := by
       simp [NicePlotOfP.x_first]
@@ -313,7 +311,7 @@ theorem P_intersect_X {n : ℕ} {npos : 0 < n} (pl : NicePlotOfP n npos) (i : �
       nlinarith
     else
       suffices (eval a (P n) - a) < 0 ∧ (eval b (P n) - b) > 0 ∨ (eval a (P n) - a) > 0 ∧ (eval b (P n) - b) < 0 by
-        apply this.elim <;> {intro _; nlinarith}
+        exact mul_neg_iff.mpr this.symm
       suffices (P n).eval a = -2 ∧ (P n).eval b = 2 ∨ (P n).eval a = 2 ∧ (P n).eval b = -2 by
         grind
       repeat rw [pl.y_eq]

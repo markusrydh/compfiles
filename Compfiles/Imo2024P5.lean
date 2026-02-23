@@ -142,6 +142,18 @@ lemma MonsterData.reflect_reflect (m : MonsterData N) : m.reflect.reflect = m :=
   ext i
   simp [MonsterData.reflect]
 
+lemma MonsterData.apply_row1_ne_zero_of_apply_row1_eq_N (hN : 2 ≤ N) {m : MonsterData N}
+    (h : (m (row1 hN) : ℕ) = N) : m (row1 hN) ≠ 0 := by
+  rw [← Fin.val_ne_iff, h, Fin.val_zero]
+  lia
+
+lemma MonsterData.reflect_apply_row1_eq_zero_of_apply_row1_eq_N (hN : 2 ≤ N)
+    {m : MonsterData N} (h : (m (row1 hN) : ℕ) = N) : m.reflect (row1 hN) = 0 := by
+  simp only [MonsterData.reflect, Function.Embedding.coeFn_mk, Function.comp_apply,
+    ← Fin.rev_last, Fin.rev_inj]
+  rw [Fin.ext_iff]
+  exact h
+
 lemma MonsterData.not_mem_monsterCells_of_fst_eq_zero (m : MonsterData N)
     {c : Cell N} (hc : c.1 = 0) : c ∉ m.monsterCells := by
   simp [monsterCells, Prod.ext_iff, hc]
@@ -259,11 +271,6 @@ lemma Path.findFstEq_eq_find?_le (p : Path N) (r : Fin (N + 2)) : p.findFstEq r 
 lemma Path.firstMonster_isSome {p : Path N} {m : MonsterData N} :
     (p.firstMonster m).isSome = true ↔ ∃ x, x ∈ p.cells ∧ x ∈ m.monsterCells := by
   convert List.find?_isSome
-  simp
-
-lemma Path.firstMonster_eq_none {p : Path N} {m : MonsterData N} :
-    (p.firstMonster m) = none ↔ ∀ x, x ∈ p.cells → x ∉ m.monsterCells := by
-  convert List.find?_eq_none
   simp
 
 lemma Path.firstMonster_none_or_some {p : Path N} {m : MonsterData N} {target : Cell N}
@@ -454,7 +461,7 @@ lemma Path.ofFn_cells {m : ℕ} (f : Fin m → Cell N) (hm : m ≠ 0)
 lemma Path.ofFn_firstMonster_eq_none {m : ℕ} (f : Fin m → Cell N) (hm hf hl ha)
     (m : MonsterData N) :
     ((Path.ofFn f hm hf hl ha).firstMonster m) = none ↔ ∀ i, f i ∉ m.monsterCells := by
-  simp [firstMonster_eq_none, ofFn_cells, List.mem_ofFn]
+  simp [Path.firstMonster, ofFn_cells, List.mem_ofFn]
 
 /-- Reflecting a path. -/
 def Path.reflect (p : Path N) : Path N where
@@ -593,7 +600,8 @@ lemma Strategy.not_forcesWinIn_two (s : Strategy N) (hN : 2 ≤ N) : ¬ s.Forces
     convert row1_mem_monsterCells_monsterData12 hN m1.2 m2.2
   refine ⟨m, fun i ↦ ?_⟩
   fin_cases i
-  · simp only [Strategy.play_zero, Path.firstMonster_eq_of_findFstEq_mem h1, Option.isSome_some]
+  · rw [Strategy.play_zero, Path.firstMonster_isSome]
+    exact ⟨m1, Path.findFstEq_mem_cells _ _, h1⟩
   · simp only [Strategy.play_one]
     suffices ((s ![some m1]).firstMonster m).isSome = true by
       rwa [Path.firstMonster_eq_of_findFstEq_mem h1]
@@ -956,53 +964,37 @@ lemma winningStrategy_play_one_eq_none_or_play_two_eq_none_of_edge_zero (hN : 2 
   exact path2OfEdge0_firstMonster_eq_none_of_path1OfEdge0_firstMonster_eq_some hN hx2N.1
     hx2N.2 hc₁0 hx.symm
 
-lemma winningStrategy_play_one_of_edge_N (hN : 2 ≤ N) {m : MonsterData N}
-    (hc₁N : (m (row1 hN) : ℕ) = N) : (winningStrategy hN).play m 3 ⟨1, by norm_num⟩ =
-      ((winningStrategy hN).play m.reflect 3 ⟨1, by norm_num⟩).map Cell.reflect := by
-  have hc₁0 : m (row1 hN) ≠ 0 := by
-    rw [← Fin.val_ne_iff, hc₁N, Fin.val_zero]
-    lia
-  have hc₁r0 : m.reflect (row1 hN) = 0 := by
-    simp only [MonsterData.reflect, Function.Embedding.coeFn_mk, Function.comp_apply,
-      ← Fin.rev_last, Fin.rev_inj]
-    rw [Fin.ext_iff]
-    exact hc₁N
-  simp_rw [winningStrategy_play_one hN, path1, path1OfEdgeN, dif_neg hc₁0, if_pos hc₁N,
-    dif_pos hc₁r0, ← Path.firstMonster_reflect, MonsterData.reflect_reflect]
-
-lemma winningStrategy_play_two_of_edge_N (hN : 2 ≤ N) {m : MonsterData N}
-    (hc₁N : (m (row1 hN) : ℕ) = N) : (winningStrategy hN).play m 3 ⟨2, by norm_num⟩ =
-      ((winningStrategy hN).play m.reflect 3 ⟨2, by norm_num⟩).map Cell.reflect := by
-  have hc₁0 : m (row1 hN) ≠ 0 := by
-    rw [← Fin.val_ne_iff, hc₁N, Fin.val_zero]
-    lia
-  have hc₁r0 : m.reflect (row1 hN) = 0 := by
-    simp only [MonsterData.reflect, Function.Embedding.coeFn_mk, Function.comp_apply,
-      ← Fin.rev_last, Fin.rev_inj]
-    rw [Fin.ext_iff]
-    exact hc₁N
-  simp_rw [winningStrategy_play_two hN, path1, path1OfEdgeN, path2, path2OfEdgeNDef, if_neg hc₁0,
-    dif_neg hc₁0, if_pos hc₁N, dif_pos hc₁N, if_pos hc₁r0, dif_pos hc₁r0,
-    ← Path.firstMonster_reflect, MonsterData.reflect_reflect]
-  convert rfl using 4
-  nth_rw 2 [← m.reflect_reflect]
-  rw [Path.firstMonster_reflect]
-  rcases ((path1OfEdge0 hN).firstMonster m.reflect).eq_none_or_eq_some with h | h
-  · simp [h]
-  · rcases h with ⟨x, hx⟩
-    simp [hx, Cell.reflect]
+lemma winningStrategy_play_one_two_of_edge_N (hN : 2 ≤ N) {m : MonsterData N}
+    (hc₁N : (m (row1 hN) : ℕ) = N) :
+    (winningStrategy hN).play m 3 ⟨1, by norm_num⟩ =
+        ((winningStrategy hN).play m.reflect 3 ⟨1, by norm_num⟩).map Cell.reflect ∧
+      (winningStrategy hN).play m 3 ⟨2, by norm_num⟩ =
+        ((winningStrategy hN).play m.reflect 3 ⟨2, by norm_num⟩).map Cell.reflect := by
+  have hc₁0 : m (row1 hN) ≠ 0 := m.apply_row1_ne_zero_of_apply_row1_eq_N hN hc₁N
+  have hc₁r0 : m.reflect (row1 hN) = 0 :=
+    m.reflect_apply_row1_eq_zero_of_apply_row1_eq_N hN hc₁N
+  refine ⟨?_, ?_⟩
+  · simp_rw [winningStrategy_play_one hN, path1, path1OfEdgeN, dif_neg hc₁0, if_pos hc₁N,
+      dif_pos hc₁r0, ← Path.firstMonster_reflect, MonsterData.reflect_reflect]
+  · simp_rw [winningStrategy_play_two hN, path1, path1OfEdgeN, path2, path2OfEdgeNDef,
+      if_neg hc₁0, dif_neg hc₁0, if_pos hc₁N, dif_pos hc₁N, if_pos hc₁r0, dif_pos hc₁r0,
+      ← Path.firstMonster_reflect, MonsterData.reflect_reflect]
+    convert rfl using 4
+    nth_rw 2 [← m.reflect_reflect]
+    rw [Path.firstMonster_reflect]
+    rcases ((path1OfEdge0 hN).firstMonster m.reflect).eq_none_or_eq_some with h | h
+    · simp [h]
+    · rcases h with ⟨x, hx⟩
+      simp [hx, Cell.reflect]
 
 lemma winningStrategy_play_one_eq_none_or_play_two_eq_none_of_edge_N (hN : 2 ≤ N)
     {m : MonsterData N} (hc₁N : (m (row1 hN) : ℕ) = N) :
     (winningStrategy hN).play m 3 ⟨1, by norm_num⟩ = none ∨
       (winningStrategy hN).play m 3 ⟨2, by norm_num⟩ = none := by
-  simp_rw [winningStrategy_play_one_of_edge_N hN hc₁N, winningStrategy_play_two_of_edge_N hN hc₁N,
-    Option.map_eq_none_iff]
-  have hc₁r0 : m.reflect (row1 hN) = 0 := by
-    simp only [MonsterData.reflect, Function.Embedding.coeFn_mk, Function.comp_apply,
-      ← Fin.rev_last, Fin.rev_inj]
-    rw [Fin.ext_iff]
-    exact hc₁N
+  rcases winningStrategy_play_one_two_of_edge_N hN hc₁N with ⟨h1, h2⟩
+  simp_rw [h1, h2, Option.map_eq_none_iff]
+  have hc₁r0 : m.reflect (row1 hN) = 0 :=
+    m.reflect_apply_row1_eq_zero_of_apply_row1_eq_N hN hc₁N
   exact winningStrategy_play_one_eq_none_or_play_two_eq_none_of_edge_zero hN hc₁r0
 
 lemma winningStrategy_play_one_eq_none_or_play_two_eq_none (hN : 2 ≤ N) (m : MonsterData N) :

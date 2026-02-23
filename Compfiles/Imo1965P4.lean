@@ -50,7 +50,7 @@ problem imo1965_p4 : { S | S.card = 4 ∧ ∀ x ∈ S, x + (S.erase x).prod = 2 
   ext S
   constructor
   · intro ⟨hcard, hprod⟩
-    have hS_nonempty : S ≠ ∅ := Multiset.card_pos.mp (by rw [hcard]; norm_num)
+    have hS_nonempty : S ≠ ∅ := Multiset.card_pos.mp (by positivity)
     set t := S.prod
     have h_quadratic : ∀ x ∈ S, x^2 - 2*x + t = 0 := fun x hx ↦ by grind [Multiset.prod_erase hx]
     have ⟨x₁, hx₁⟩ := Multiset.exists_mem_of_ne_zero hS_nonempty

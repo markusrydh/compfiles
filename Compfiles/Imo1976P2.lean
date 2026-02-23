@@ -8,7 +8,9 @@ import Mathlib
 import ProblemExtraction
 
 
-problem_file
+problem_file {
+  tags := [.Algebra]
+}
 
 /-!
 # International Mathematical Olympiad 1976, Problem 2

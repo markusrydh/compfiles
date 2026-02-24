@@ -2218,12 +2218,11 @@ lemma disjoint_label_X_W (cp : CrossingPoints c) (m : Matilda n c.all_black) (bw
     (h_x_in : m.mem (c.wx cp))
     (h_bw_reg : bw ∈ regionWExtend c.u c.v) : False := by
   obtain ⟨hx_u, hx_v, hy_u, hy_v⟩ := c.wx_bounds cp
-  let wx := c.wx cp
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_w_in h_x_in
-  have h_w_sub : ↑(bw.2 - 1).val = py bw - 1 := fin_val_sub_one_eq hbw_pos
+  have ⟨h_face_y, _, _⟩ := source_on_face_W m bw hbw hbw_pos h_w_in
+  simp only [Matilda.mem] at h_x_in
   rw [mem_regionWExtend] at h_bw_reg
   obtain ⟨h_bw_u_lo, h_bw_v_lo⟩ := h_bw_reg
-  have h_py_le : py bw ≤ py wx := by
+  have h_py_le : py bw ≤ py (c.wx cp) := by
     by_cases h_split : px bw < px cp.uk1
     · rw [mem_u_lower] at h_bw_u_lo
       obtain ⟨ui, hui, hx_le, hy_ge⟩ := h_bw_u_lo
@@ -2236,10 +2235,7 @@ lemma disjoint_label_X_W (cp : CrossingPoints c) (m : Matilda n c.all_black) (bw
       have h_vj_ge : px cp.uk1 ≤ px vj := le_trans h_split hx_le
       have h_y_bound : py vj ≤ py cp.vl1 := c.v_y_le_vl1_of_x_ge_uk1 cp vj hvj h_vj_ge
       linarith [hy_ge, hy_v.1]
-  have h_bw_in_m : m.mem bw := by
-    simp only [Matilda.mem]
-    repeat (first | constructor | linarith | omega)
-  exact m.h_disjoint bw hbw h_bw_in_m
+  have := h_x_in.2.2.2; lia
 
 lemma u_x_le_uk_of_y_lt_uk1 (cp : CrossingPoints c) (q : Point n)
     (hq : q ∈ c.u) (hy : py q < py cp.uk1) : px q ≤ px cp.uk := by
@@ -2283,12 +2279,11 @@ lemma disjoint_label_X_N (cp : CrossingPoints c) (m : Matilda n c.all_black) (bn
     (h_x_in : m.mem (c.wx cp))
     (h_bn_reg : bn ∈ regionNExtend c.u c.v) : False := by
   obtain ⟨hx_u, hx_v, hy_u, hy_v⟩ := c.wx_bounds cp
-  let wx := c.wx cp
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_n_in h_x_in
-  have h_n_sub : ↑(bn.1 - 1).val = px bn - 1 := fin_val_sub_one_eq hbn_pos
+  have ⟨h_face_x, _, _⟩ := source_on_face_N m bn hbn hbn_pos h_n_in
+  simp only [Matilda.mem] at h_x_in
   rw [mem_regionNExtend] at h_bn_reg
   obtain ⟨h_bn_u_up, h_bn_v_lo⟩ := h_bn_reg
-  have h_px_le : px bn ≤ px wx := by
+  have h_px_le : px bn ≤ px (c.wx cp) := by
     by_cases h_split : py bn < py cp.uk1
     · rw [mem_u_upper] at h_bn_u_up
       obtain ⟨ui, hui, hx_le, hy_le⟩ := h_bn_u_up
@@ -2301,10 +2296,7 @@ lemma disjoint_label_X_N (cp : CrossingPoints c) (m : Matilda n c.all_black) (bn
       have h_vj_ge : py cp.uk1 ≤ py vj := le_trans h_split hy_le
       have h_x_bound : px vj ≤ px cp.vl := c.v_x_le_vl_of_y_ge_uk1 cp vj hvj h_vj_ge
       linarith [hx_le, hx_v.1]
-  have h_bn_in_m : m.mem bn := by
-    simp only [Matilda.mem]
-    repeat (first | constructor | linarith | omega)
-  exact m.h_disjoint bn hbn h_bn_in_m
+  have := h_x_in.2.1; lia
 
 lemma u_x_ge_uk1_of_x_gt_uk (cp : CrossingPoints c) (q : Point n)
     (hq : q ∈ c.u) (hx : px cp.uk < px q) : px cp.uk1 ≤ px q := by
@@ -2337,12 +2329,11 @@ lemma disjoint_label_X_E (cp : CrossingPoints c) (m : Matilda n c.all_black) (be
     (h_e_in : m.mem ⟨be.1, be.2 + 1⟩)
     (h_be_reg : be ∈ regionEExtend c.u c.v) : False := by
   obtain ⟨hx_u, hx_v, hy_u, hy_v⟩ := c.wx_bounds cp
-  let wx := c.wx cp
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_e_in h_x_in
-  have h_e_add : ↑(be.2 + 1).val = py be + 1 := fin_val_add_one_eq hbe_bound
+  have ⟨h_face_y, _, _⟩ := source_on_face_E m be hbe hbe_bound h_e_in
+  simp only [Matilda.mem] at h_x_in
   rw [mem_regionEExtend] at h_be_reg
   obtain ⟨h_be_u_up, h_be_v_up⟩ := h_be_reg
-  have h_py_le : py wx ≤ py be := by
+  have h_py_le : py (c.wx cp) ≤ py be := by
     by_cases h_split_u : px cp.uk1 ≤ px be
     · rw [mem_u_upper] at h_be_u_up
       obtain ⟨qi, hqi, hx_le, hy_le⟩ := h_be_u_up
@@ -2369,10 +2360,7 @@ lemma disjoint_label_X_E (cp : CrossingPoints c) (m : Matilda n c.all_black) (be
         have h_y_ge_uk1 : py cp.uk1 ≤ py qi :=
           c.u_mono_le cp.uk1 cp.mem_uk1 qi hqi h_uk1_le_qi
         linarith [hy_u.2, hy_le]
-  have h_be_in_m : m.mem be := by
-    simp only [Matilda.mem]
-    repeat (first | constructor | linarith | omega)
-  exact m.h_disjoint be hbe h_be_in_m
+  have := h_x_in.2.2.1; lia
 
 lemma pivot_overlap_y_2 (cp : CrossingPoints c) :
     py cp.uk < py cp.vl := by
@@ -2391,12 +2379,11 @@ lemma disjoint_label_X_S (cp : CrossingPoints c) (m : Matilda n c.all_black) (bs
     (h_x_in : m.mem (c.wx cp))
     (h_bs_reg : bs ∈ regionSExtend c.u c.v) : False := by
   obtain ⟨hx_u, hx_v, hy_u, hy_v⟩ := c.wx_bounds cp
-  let wx := c.wx cp
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_s_in h_x_in
-  have h_s_add : ↑(bs.1 + 1).val = px bs + 1 := fin_val_add_one_eq hbs_bound
+  have ⟨h_face_x, _, _⟩ := source_on_face_S m bs hbs hbs_bound h_s_in
+  simp only [Matilda.mem] at h_x_in
   rw [mem_regionSExtend] at h_bs_reg
   obtain ⟨h_bs_u_lo, h_bs_v_up⟩ := h_bs_reg
-  have h_px_le : px wx ≤ px bs := by
+  have h_px_le : px (c.wx cp) ≤ px bs := by
     by_cases h_split : px bs < px cp.vl1
     · rw [mem_v_upper] at h_bs_v_up
       obtain ⟨vj, hvj, hx_le, hy_le⟩ := h_bs_v_up
@@ -2410,10 +2397,7 @@ lemma disjoint_label_X_S (cp : CrossingPoints c) (m : Matilda n c.all_black) (bs
       linarith [hx_u.2, h_ui_x_le]
     · push_neg at h_split
       linarith [hx_v.2]
-  have h_bs_in_m : m.mem bs := by
-    simp only [Matilda.mem]
-    repeat (first | constructor | linarith | omega)
-  exact m.h_disjoint bs hbs h_bs_in_m
+  have := h_x_in.1; lia
 
 open Classical
 

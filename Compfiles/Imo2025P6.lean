@@ -576,309 +576,56 @@ lemma fin_val_add_one_eq {i : Fin n} (h : i.val < n - 1) :
     (i + 1).val = i.val + 1 := by
   rw [Fin.val_add]; simp; rw [Nat.mod_eq_of_lt]; omega
 
-macro "my_solver" : tactic => `(tactic| first | omega | linarith)
-macro "solve_matilda_mem" : tactic => `(tactic| {
-  simp only [Matilda.mem]
-  repeat constructor <;> repeat my_solver
-})
+lemma source_on_face_W (m : Matilda n all_black) (bw : Point n)
+    (hbw : bw ∈ all_black) (hbw_pos : 0 < py bw)
+    (h_in : m.mem ⟨bw.1, bw.2 - 1⟩) :
+    py bw = m.y_max + 1 ∧ m.x_min ≤ px bw ∧ px bw ≤ m.x_max := by
+  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_in
+  have hsub := fin_val_sub_one_eq hbw_pos
+  simp only [px, py] at hbw_pos hsub ⊢
+  have h_not := m.h_disjoint bw hbw; simp only [px, py] at h_not; push_neg at h_not
+  have hlt := h_not (by omega) (by omega) (by omega)
+  exact ⟨by omega, by omega, by omega⟩
 
-variable {n : ℕ} [NeZero n]
-variable {all_black : Finset (Point n)}
-variable (m : Matilda n all_black)
-variable (u v : Finset (Point n))
-variable (h_u_mono : ∀ a ∈ u, ∀ b ∈ u, px a ≤ px b → py a ≤ py b)
-variable (h_v_mono : ∀ a ∈ v, ∀ b ∈ v, px a ≤ px b → py b ≤ py a)
-variable (h_u_inj : ∀ a ∈ u, ∀ b ∈ u, py a = py b → a = b)
-variable (h_v_inj : ∀ p ∈ v, ∀ q ∈ v, px p = px q → p = q)
-variable (h_unique_x : ∀ p ∈ all_black, ∀ q ∈ all_black, px p = px q → p = q)
-variable (h_unique_y : ∀ p ∈ all_black, ∀ q ∈ all_black, py p = py q → p = q)
+lemma source_on_face_E (m : Matilda n all_black) (be : Point n)
+    (hbe : be ∈ all_black) (hbe_bound : py be < n - 1)
+    (h_in : m.mem ⟨be.1, be.2 + 1⟩) :
+    m.y_min = py be + 1 ∧ m.x_min ≤ px be ∧ px be ≤ m.x_max := by
+  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_in
+  have hadd := fin_val_add_one_eq hbe_bound
+  simp only [px, py] at hbe_bound hadd ⊢
+  have h_not := m.h_disjoint be hbe; simp only [px, py] at h_not; push_neg at h_not
+  -- source is below tile: py be < m.y_min, since py be + 1 ≥ m.y_min and py be ≤ m.y_max would put source in tile
+  by_contra h_neg; push_neg at h_neg
+  by_cases h_ymin : m.y_min ≤ ↑be.2
+  · exact absurd (h_not (by omega) (by omega) h_ymin) (by omega)
+  · push_neg at h_ymin; omega
 
-lemma unique_label_W (m : Matilda n all_black) (p q : Point n)
-    (hp : p ∈ all_black) (hq : q ∈ all_black) (h_ne : p ≠ q)
-    (hp_pos : 0 < py p) (hq_pos : 0 < py q)
-    (hp_in : m.mem ⟨p.1, p.2 - 1⟩)
-    (hq_in : m.mem ⟨q.1, q.2 - 1⟩)
-    (h_unique_y : ∀ p ∈ all_black, ∀ q ∈ all_black, py p = py q → p = q) : False := by
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at hp_in hq_in
-  have h_p_sub : ↑(p.2 - 1) = py p - 1 := fin_val_sub_one_eq hp_pos
-  have h_q_sub : ↑(q.2 - 1) = py q - 1 := fin_val_sub_one_eq hq_pos
-  rcases lt_trichotomy (py p) (py q) with h_lt | h_eq | h_gt
-  · have h_p_in_m : m.mem p := by solve_matilda_mem
-    exact m.h_disjoint p hp h_p_in_m
-  · exact h_ne (h_unique_y p hp q hq h_eq)
-  · have h_q_in_m : m.mem q := by solve_matilda_mem
-    exact m.h_disjoint q hq h_q_in_m
+lemma source_on_face_N (m : Matilda n all_black) (bn : Point n)
+    (hbn : bn ∈ all_black) (hbn_pos : 0 < px bn)
+    (h_in : m.mem ⟨bn.1 - 1, bn.2⟩) :
+    px bn = m.x_max + 1 ∧ m.y_min ≤ py bn ∧ py bn ≤ m.y_max := by
+  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_in
+  have hsub := fin_val_sub_one_eq hbn_pos
+  simp only [px, py] at hbn_pos hsub ⊢
+  have h_not := m.h_disjoint bn hbn; simp only [px, py] at h_not; push_neg at h_not
+  by_contra h_neg; push_neg at h_neg
+  by_cases h_xmax : ↑bn.1 ≤ m.x_max
+  · exact absurd (h_not (by omega) h_xmax (by omega)) (by omega)
+  · push_neg at h_xmax; omega
 
-lemma unique_label_N (m : Matilda n all_black) (p q : Point n)
-    (hp : p ∈ all_black) (hq : q ∈ all_black) (h_ne : p ≠ q)
-    (hp_pos : 0 < px p) (hq_pos : 0 < px q)
-    (hp_in : m.mem ⟨p.1 - 1, p.2⟩)
-    (hq_in : m.mem ⟨q.1 - 1, q.2⟩)
-    (h_unique_x : ∀ p ∈ all_black, ∀ q ∈ all_black, px p = px q → p = q) : False := by
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at hp_in hq_in
-  have h_p_sub : ↑(p.1 - 1) = px p - 1 := fin_val_sub_one_eq hp_pos
-  have h_q_sub : ↑(q.1 - 1) = px q - 1 := fin_val_sub_one_eq hq_pos
-  rcases lt_trichotomy (px p) (px q) with h_lt | h_eq | h_gt
-  · have h_p_in_m : m.mem p := by solve_matilda_mem
-    exact m.h_disjoint p hp h_p_in_m
-  · exact h_ne (h_unique_x p hp q hq h_eq)
-  · have h_q_in_m : m.mem q := by solve_matilda_mem
-    exact m.h_disjoint q hq h_q_in_m
-
-lemma unique_label_E (m : Matilda n all_black) (p q : Point n)
-    (hp : p ∈ all_black) (hq : q ∈ all_black) (h_ne : p ≠ q)
-    (hp_bound : py p < n - 1) (hq_bound : py q < n - 1)
-    (hp_in : m.mem ⟨p.1, p.2 + 1⟩)
-    (hq_in : m.mem ⟨q.1, q.2 + 1⟩)
-    (h_unique_y : ∀ p ∈ all_black, ∀ q ∈ all_black, py p = py q → p = q) : False := by
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at hp_in hq_in
-  have h_p_add : ↑(p.2 + 1) = py p + 1 := fin_val_add_one_eq hp_bound
-  have h_q_add : ↑(q.2 + 1) = py q + 1 := fin_val_add_one_eq hq_bound
-  rw [h_p_add] at hp_in; rw [h_q_add] at hq_in
-  rcases lt_trichotomy (py p) (py q) with h_lt | h_eq | h_gt
-  · have h_q_in_m : m.mem q := by solve_matilda_mem
-    exact m.h_disjoint q hq h_q_in_m
-  · exact h_ne (h_unique_y p hp q hq h_eq)
-  · have h_p_in_m : m.mem p := by solve_matilda_mem
-    exact m.h_disjoint p hp h_p_in_m
-
-lemma unique_label_S (m : Matilda n all_black) (p q : Point n)
-    (hp : p ∈ all_black) (hq : q ∈ all_black) (h_ne : p ≠ q)
-    (hp_bound : px p < n - 1) (hq_bound : px q < n - 1)
-    (hp_in : m.mem ⟨p.1 + 1, p.2⟩)
-    (hq_in : m.mem ⟨q.1 + 1, q.2⟩)
-    (h_unique_x : ∀ p ∈ all_black, ∀ q ∈ all_black, px p = px q → p = q) : False := by
-
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at hp_in hq_in
-  have h_p_add : ↑(p.1 + 1) = px p + 1 := fin_val_add_one_eq hp_bound
-  have h_q_add : ↑(q.1 + 1) = px q + 1 := fin_val_add_one_eq hq_bound
-  rcases lt_trichotomy (px p) (px q) with h_lt | h_eq | h_gt
-  · have h_q_in_m : m.mem q := by solve_matilda_mem
-    exact m.h_disjoint q hq h_q_in_m
-  · exact h_ne (h_unique_x p hp q hq h_eq)
-  · have h_p_in_m : m.mem p := by solve_matilda_mem
-    exact m.h_disjoint p hp h_p_in_m
-
-lemma disjoint_label_W_N (m : Matilda n all_black) (bw bn : Point n)
-    (hbw : bw ∈ all_black) (hbn : bn ∈ all_black)
-    (hbw_pos : 0 < py bw) (hbn_pos : 0 < px bn)
-    (h_u_mono : ∀ a ∈ u, ∀ b ∈ u, px a ≤ px b → py a ≤ py b)
-    (h_u_inj : ∀ a ∈ u, ∀ b ∈ u, py a = py b → a = b)
-    (h_w_in : m.mem ⟨bw.1, bw.2 - 1⟩)
-    (h_n_in : m.mem ⟨bn.1 - 1, bn.2⟩)
-    (h_bw_reg : bw ∈ u_lower u)
-    (h_bn_reg : bn ∈ u_upper u)
-    : False := by
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_w_in h_n_in
-  have h_w_sub : ↑(bw.2 - 1).val = py bw - 1 := fin_val_sub_one_eq hbw_pos
-  have h_n_sub : ↑(bn.1 - 1).val = px bn - 1 := fin_val_sub_one_eq hbn_pos
-  rcases (mem_u_lower u bw).mp h_bw_reg with ⟨u1, hu1_mem, hu1_x, hu1_y⟩
-  rcases (mem_u_upper u bn).mp h_bn_reg with ⟨u2, hu2_mem, hu2_x, hu2_y⟩
-  by_cases h_cross_x : px bn < px bw
-  · have h_bn_in_m : m.mem bn := by solve_matilda_mem
-    exact m.h_disjoint bn hbn h_bn_in_m
-  by_cases h_cross_y : py bw < py bn
-  · have h_bw_in_m : m.mem bw := by solve_matilda_mem
-    exact m.h_disjoint bw hbw h_bw_in_m
-  push_neg at h_cross_x h_cross_y
-  have h_x_chain : px u1 ≤ px u2 := by linarith
-  have h_y_chain : py u2 ≤ py u1 := by linarith
-  have h_mono : py u1 ≤ py u2 := h_u_mono u1 hu1_mem u2 hu2_mem h_x_chain
-  have h_y_eq : py u1 = py u2 := by linarith
-  have h_u_eq : u1 = u2 := h_u_inj u1 hu1_mem u2 hu2_mem h_y_eq
-  rw [h_u_eq] at hu1_x hu1_y
-  have h_same_x : px bw = px bn := by linarith
-  have h_same_y : py bw = py bn := by linarith
-  have h_bw_in_m : m.mem bw := by
-    simp only [Matilda.mem]
-    repeat (first | constructor | linarith)
-  exact m.h_disjoint bw hbw h_bw_in_m
-
-lemma disjoint_label_E_S (m : Matilda n all_black) (be bs : Point n)
-    (hbe : be ∈ all_black) (hbs : bs ∈ all_black)
-    (hbe_bound : py be < n - 1) (hbs_bound : px bs < n - 1)
-    (h_u_mono : ∀ a ∈ u, ∀ b ∈ u, px a ≤ px b → py a ≤ py b)
-    (h_u_inj : ∀ a ∈ u, ∀ b ∈ u, py a = py b → a = b)
-    (h_e_in : m.mem ⟨be.1, be.2 + 1⟩)
-    (h_s_in : m.mem ⟨bs.1 + 1, bs.2⟩)
-    (h_be_reg : be ∈ u_upper u)
-    (h_bs_reg : bs ∈ u_lower u)
-    : False := by
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_e_in h_s_in
-  have h_e_add := fin_val_add_one_eq hbe_bound
-  have h_s_add := fin_val_add_one_eq hbs_bound
-  rcases (mem_u_upper u be).mp h_be_reg with ⟨u2, hu2_mem, hu2_x, hu2_y⟩
-  rcases (mem_u_lower u bs).mp h_bs_reg with ⟨u1, hu1_mem, hu1_x, hu1_y⟩
-  by_cases h_cross_x : px be < px bs
-  · have h_bs_in_m : m.mem bs := by solve_matilda_mem
-    exact m.h_disjoint bs hbs h_bs_in_m
-  by_cases h_cross_y : py bs < py be
-  · have h_be_in_m : m.mem be := by solve_matilda_mem
-    exact m.h_disjoint be hbe h_be_in_m
-  push_neg at h_cross_x h_cross_y
-  have h_x_chain : px u1 ≤ px u2 := by linarith
-  have h_y_chain : py u2 ≤ py u1 := by linarith
-  have h_mono : py u1 ≤ py u2 := h_u_mono u1 hu1_mem u2 hu2_mem h_x_chain
-  have h_y_eq : py u1 = py u2 := by linarith
-  have h_u_eq : u1 = u2 := h_u_inj u1 hu1_mem u2 hu2_mem h_y_eq
-  rw [h_u_eq] at hu1_x hu1_y
-  have h_same_x : px be = px bs := by linarith
-  have h_same_y : py be = py bs := by linarith
-  have h_be_in_m : m.mem be := by
-    simp only [Matilda.mem]
-    repeat (first | constructor | linarith)
-  exact m.h_disjoint be hbe h_be_in_m
-
-lemma disjoint_label_E_N (m : Matilda n all_black) (be bn : Point n)
-    (hbe : be ∈ all_black) (hbn : bn ∈ all_black)
-    (hbe_bound : py be < n - 1) (hbn_pos : 0 < px bn)
-    (h_v_mono : ∀ a ∈ v, ∀ b ∈ v, px a ≤ px b → py b ≤ py a)
-    (h_v_inj : ∀ a ∈ v, ∀ b ∈ v, py a = py b → a = b)
-    (h_e_in : m.mem ⟨be.1, be.2 + 1⟩)
-    (h_n_in : m.mem ⟨bn.1 - 1, bn.2⟩)
-    (h_be_reg : be ∈ v_upper v)
-    (h_bn_reg : bn ∈ v_lower v)
-    : False := by
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_e_in h_n_in
-  have h_e_add : ↑(be.2 + 1).val = py be + 1 := fin_val_add_one_eq hbe_bound
-  have h_n_sub : ↑(bn.1 - 1).val = px bn - 1 := fin_val_sub_one_eq hbn_pos
-  rcases (mem_v_upper v be).mp h_be_reg with ⟨v1, hv1_mem, hv1_x, hv1_y⟩
-  rcases (mem_v_lower v bn).mp h_bn_reg with ⟨v2, hv2_mem, hv2_x, hv2_y⟩
-  by_cases h_cross_x : px bn < px be
-  · have h_bn_in_m : m.mem bn := by solve_matilda_mem
-    exact m.h_disjoint bn hbn h_bn_in_m
-  by_cases h_cross_y : py bn < py be
-  · have h_be_in_m : m.mem be := by solve_matilda_mem
-    exact m.h_disjoint be hbe h_be_in_m
-  push_neg at h_cross_x h_cross_y
-  have h_x_chain : px v1 ≤ px v2 := by linarith
-  have h_y_chain : py v1 ≤ py v2 := by linarith
-  have h_mono : py v2 ≤ py v1 := h_v_mono v1 hv1_mem v2 hv2_mem h_x_chain
-  have h_y_eq : py v1 = py v2 := by linarith
-  have h_v_eq : v1 = v2 := h_v_inj v1 hv1_mem v2 hv2_mem h_y_eq
-  rw [h_v_eq] at hv1_x hv1_y
-  have h_same_x : px be = px bn := by linarith
-  have h_same_y : py be = py bn := by linarith
-  have h_be_in_m : m.mem be := by
-    simp only [Matilda.mem]
-    repeat (first | constructor | linarith)
-  exact m.h_disjoint be hbe h_be_in_m
-
-lemma disjoint_label_S_W (m : Matilda n all_black) (bs bw : Point n)
-    (hbs : bs ∈ all_black) (hbw : bw ∈ all_black)
-    (hbs_bound : px bs < n - 1) (hbw_pos : 0 < py bw)
-    (h_v_mono : ∀ a ∈ v, ∀ b ∈ v, px a ≤ px b → py b ≤ py a)
-    (h_v_inj : ∀ a ∈ v, ∀ b ∈ v, py a = py b → a = b)
-    (h_s_in : m.mem ⟨bs.1 + 1, bs.2⟩)
-    (h_w_in : m.mem ⟨bw.1, bw.2 - 1⟩)
-    (h_bs_reg : bs ∈ v_upper v)
-    (h_bw_reg : bw ∈ v_lower v)
-    : False := by
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_s_in h_w_in
-  have h_s_add : ↑(bs.1 + 1).val = px bs + 1 := fin_val_add_one_eq hbs_bound
-  have h_w_sub : ↑(bw.2 - 1).val = py bw - 1 := fin_val_sub_one_eq hbw_pos
-  rcases (mem_v_upper v bs).mp h_bs_reg with ⟨v2, hv2_mem, hv2_x, hv2_y⟩
-  rcases (mem_v_lower v bw).mp h_bw_reg with ⟨v1, hv1_mem, hv1_x, hv1_y⟩
-  by_cases h_cross_x : px bw < px bs
-  · have h_bs_in_m : m.mem bs := by solve_matilda_mem
-    exact m.h_disjoint bs hbs h_bs_in_m
-  by_cases h_cross_y : py bw < py bs
-  · have h_bw_in_m : m.mem bw := by solve_matilda_mem
-    exact m.h_disjoint bw hbw h_bw_in_m
-  push_neg at h_cross_x h_cross_y
-  have h_x_chain : px v2 ≤ px v1 := by linarith
-  have h_y_chain : py v2 ≤ py v1 := by linarith
-  have h_mono : py v1 ≤ py v2 := h_v_mono v2 hv2_mem v1 hv1_mem h_x_chain
-  have h_y_eq : py v2 = py v1 := by linarith
-  have h_v_eq : v1 = v2 := h_v_inj v1 hv1_mem v2 hv2_mem h_y_eq.symm
-  rw [h_v_eq] at hv1_x hv1_y
-  have h_same_x : px bs = px bw := by linarith
-  have h_same_y : py bs = py bw := by linarith
-  have h_bs_in_m : m.mem bs := by
-    simp only [Matilda.mem]
-    repeat (first | constructor | linarith)
-  exact m.h_disjoint bs hbs h_bs_in_m
-
-lemma disjoint_label_W_E (m : Matilda n all_black) (bw be : Point n)
-    (hbw : bw ∈ all_black)
-    (hbw_pos : 0 < py bw) (hbe_bound : py be < n - 1)
-    (h_u_mono : ∀ a ∈ u, ∀ b ∈ u, px a ≤ px b → py a ≤ py b)
-    (h_v_mono : ∀ a ∈ v, ∀ b ∈ v, px a ≤ px b → py b ≤ py a)
-    (h_u_inj : ∀ a ∈ u, ∀ b ∈ u, py a = py b → a = b)
-    (h_w_in : m.mem ⟨bw.1, bw.2 - 1⟩)
-    (h_e_in : m.mem ⟨be.1, be.2 + 1⟩)
-    (h_bw_reg : bw ∈ regionWExtend u v)
-    (h_be_reg : be ∈ regionEExtend u v)
-    : False := by
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_w_in h_e_in
-  have h_w_sub : ↑(bw.2 - 1).val = py bw - 1 := fin_val_sub_one_eq hbw_pos
-  have h_e_add : ↑(be.2 + 1).val = py be + 1 := fin_val_add_one_eq hbe_bound
-  obtain ⟨h_bw_u, h_bw_v⟩ := (mem_regionWExtend u v bw).mp h_bw_reg
-  obtain ⟨h_be_u, h_be_v⟩ := (mem_regionEExtend u v be).mp h_be_reg
-  rcases (mem_u_lower u bw).mp h_bw_u with ⟨u1, hu1_mem, hu1_x, hu1_y⟩
-  rcases (mem_u_upper u be).mp h_be_u with ⟨u2, hu2_mem, hu2_x, hu2_y⟩
-  rcases (mem_v_lower v bw).mp h_bw_v with ⟨v1, hv1_mem, hv1_x, hv1_y⟩
-  rcases (mem_v_upper v be).mp h_be_v with ⟨v2, hv2_mem, hv2_x, hv2_y⟩
-  by_cases h_lt : py bw < py be
-  · have h_bw_in_m : m.mem bw := by solve_matilda_mem
-    exact m.h_disjoint bw hbw h_bw_in_m
-  push_neg at h_lt
-  have h_y_chain_u : py u2 ≤ py u1 := by linarith
-  have h_x_u_order : px u2 ≤ px u1 := by
-    by_contra h_contra; push_neg at h_contra
-    have h_mono := h_u_mono u1 hu1_mem u2 hu2_mem (le_of_lt h_contra)
-    have h_y_eq : py u1 = py u2 := by linarith
-    have h_u_eq : u1 = u2 := h_u_inj u1 hu1_mem u2 hu2_mem h_y_eq
-    rw [h_u_eq] at h_contra; linarith
-  have h_x_chain_all : px v2 ≤ px v1 := by linarith
-  have h_y_v_order : py v1 ≤ py v2 := h_v_mono v2 hv2_mem v1 hv1_mem h_x_chain_all
-  have h_y_final : py bw ≤ py be := by linarith
-  have h_same_y : py bw = py be := by linarith
-  have h_bw_in_m : m.mem bw := by
-    simp only [Matilda.mem]
-    repeat (first | constructor | linarith | omega)
-  exact m.h_disjoint bw hbw h_bw_in_m
-
-lemma disjoint_label_N_S (m : Matilda n all_black) (bn bs : Point n)
-    (hbn : bn ∈ all_black)
-    (hbn_pos : 0 < px bn) (hbs_bound : px bs < n - 1)
-    (h_u_mono : ∀ a ∈ u, ∀ b ∈ u, px a ≤ px b → py a ≤ py b)
-    (h_v_mono : ∀ a ∈ v, ∀ b ∈ v, px a ≤ px b → py b ≤ py a)
-    (h_v_inj : ∀ a ∈ v, ∀ b ∈ v, py a = py b → a = b)
-    (h_n_in : m.mem ⟨bn.1 - 1, bn.2⟩)
-    (h_s_in : m.mem ⟨bs.1 + 1, bs.2⟩)
-    (h_bn_reg : bn ∈ regionNExtend u v)
-    (h_bs_reg : bs ∈ regionSExtend u v)
-    : False := by
-
-  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_n_in h_s_in
-  have h_n_sub : ↑(bn.1 - 1).val = px bn - 1 := fin_val_sub_one_eq hbn_pos
-  have h_s_add : ↑(bs.1 + 1).val = px bs + 1 := fin_val_add_one_eq hbs_bound
-  obtain ⟨h_bn_u, h_bn_v⟩ := (mem_regionNExtend u v bn).mp h_bn_reg
-  obtain ⟨h_bs_u, h_bs_v⟩ := (mem_regionSExtend u v bs).mp h_bs_reg
-  rcases (mem_u_upper u bn).mp h_bn_u with ⟨u1, hu1_mem, hu1_x, hu1_y⟩
-  rcases (mem_u_lower u bs).mp h_bs_u with ⟨u2, hu2_mem, hu2_x, hu2_y⟩
-  rcases (mem_v_lower v bn).mp h_bn_v with ⟨v1, hv1_mem, hv1_x, hv1_y⟩
-  rcases (mem_v_upper v bs).mp h_bs_v with ⟨v2, hv2_mem, hv2_x, hv2_y⟩
-  by_cases h_lt : px bn < px bs
-  · have h_bn_in_m : m.mem bn := by solve_matilda_mem
-    exact m.h_disjoint bn hbn h_bn_in_m
-  push_neg at h_lt
-  have h_x_chain_u : px u2 ≤ px u1 := by linarith
-  have h_y_u_order : py u2 ≤ py u1 := h_u_mono u2 hu2_mem u1 hu1_mem h_x_chain_u
-  have h_y_chain_all : py v2 ≤ py v1 := by linarith
-  have h_x_v_order : px v1 ≤ px v2 := by
-    by_contra h_contra; push_neg at h_contra
-    have h_mono := h_v_mono v2 hv2_mem v1 hv1_mem (le_of_lt h_contra)
-    have h_y_eq : py v1 = py v2 := by linarith
-    have h_v_eq : v1 = v2 := h_v_inj v1 hv1_mem v2 hv2_mem h_y_eq
-    rw [h_v_eq] at h_contra; linarith
-  have h_x_final : px bn ≤ px bs := by linarith
-  have h_same_x : px bn = px bs := by linarith
-  have h_bn_in_m : m.mem bn := by
-    simp only [Matilda.mem]
-    repeat (first | constructor | linarith | omega)
-  exact m.h_disjoint bn hbn h_bn_in_m
+lemma source_on_face_S (m : Matilda n all_black) (bs : Point n)
+    (hbs : bs ∈ all_black) (hbs_bound : px bs < n - 1)
+    (h_in : m.mem ⟨bs.1 + 1, bs.2⟩) :
+    m.x_min = px bs + 1 ∧ m.y_min ≤ py bs ∧ py bs ≤ m.y_max := by
+  simp only [Matilda.mem, px_mk_val, py_mk_val] at h_in
+  have hadd := fin_val_add_one_eq hbs_bound
+  simp only [px, py] at hbs_bound hadd ⊢
+  have h_not := m.h_disjoint bs hbs; simp only [px, py] at h_not; push_neg at h_not
+  by_contra h_neg; push_neg at h_neg
+  by_cases h_xmin : m.x_min ≤ ↑bs.1
+  · exact absurd (h_not h_xmin (by omega) (by omega)) (by omega)
+  · push_neg at h_xmin; omega
 
 end LabelingConsistency
 
@@ -1112,142 +859,258 @@ lemma matilda_covers_at_most_one_core {n : ℕ} [NeZero n]
     (h_not_X1 : l1.type ≠ .X) (h_not_X2 : l2.type ≠ .X) : False := by
   let p1 := l1.source; let p2 := l2.source
   cases h1 : l1.type <;> cases h2 : l2.type
-  · have hp1 := props1.1 h1; have hp2 := props2.1 h2
+  · -- W.W: both sources on top face → py equal → same source, contradiction
+    have hp1 := props1.1 h1; have hp2 := props2.1 h2
     simp only [mem_targetsWin, mem_targetsW] at hp1 hp2
     simp [h1, h2] at h_cov1 h_cov2
-    have h_p_ne : p1 ≠ p2 := Label.source_ne_of_ne h_ne (by rw [h1, h2])
-    exact unique_label_W (m := m) (p := p1) (q := p2)
-      (hp := hp1.1.1) (hq := hp2.1.1) (h_ne := h_p_ne)
-      (hp_pos := hp1.2) (hq_pos := hp2.2)
-      (hp_in := h_cov1) (hq_in := h_cov2) (h_unique_y := h_uniq_y)
-  · have hW := props1.1 h1; have hN := props2.2.1 h2
+    have f1 := source_on_face_W m p1 hp1.1.1 hp1.2 h_cov1
+    have f2 := source_on_face_W m p2 hp2.1.1 hp2.2 h_cov2
+    exact Label.source_ne_of_ne h_ne (by rw [h1, h2])
+      (h_uniq_y p1 hp1.1.1 p2 hp2.1.1 (by omega))
+  · -- W.N: bw on top face, bn on right face → chain contradiction
+    have hW := props1.1 h1; have hN := props2.2.1 h2
     simp only [mem_targetsWin, mem_targetsW] at hW
     simp only [mem_targetsNin, mem_targetsN] at hN
     simp [h1, h2] at h_cov1 h_cov2
-    apply disjoint_label_W_N (m := m) (u := u) (bw := p1) (bn := p2)
-      (hbw := hW.1.1) (hbn := hN.1.1) (hbw_pos := hW.2) (hbn_pos := hN.2)
-      (h_u_mono := h_u_mono) (h_u_inj := h_u_inj) (h_w_in := h_cov1) (h_n_in := h_cov2)
-    · simp only [mem_regionWExtend] at hW; exact hW.1.2.1
-    · simp only [mem_regionNExtend] at hN; exact hN.1.2.1
-  · have hW := props1.1 h1; have hE := props2.2.2.1 h2
+    have fw := source_on_face_W m p1 hW.1.1 hW.2 h_cov1
+    have fn := source_on_face_N m p2 hN.1.1 hN.2 h_cov2
+    -- p1 on top face: px p1 ∈ [x_min, x_max], py p1 = y_max + 1
+    -- p2 on right face: py p2 ∈ [y_min, y_max], px p2 = x_max + 1
+    -- So px p1 ≤ x_max < x_max + 1 = px p2 and py p2 ≤ y_max < y_max + 1 = py p1
+    simp only [mem_regionWExtend] at hW; simp only [mem_regionNExtend] at hN
+    rcases (mem_u_lower u p1).mp hW.1.2.1 with ⟨u1, hu1_mem, hu1_x, hu1_y⟩
+    rcases (mem_u_upper u p2).mp hN.1.2.1 with ⟨u2, hu2_mem, hu2_x, hu2_y⟩
+    have : py u1 ≤ py u2 := h_u_mono u1 hu1_mem u2 hu2_mem (by omega)
+    linarith
+  · -- W.E: opposite faces (top/bottom) → chain contradiction
+    have hW := props1.1 h1; have hE := props2.2.2.1 h2
     simp only [mem_targetsWin, mem_targetsW] at hW
     simp only [mem_targetsEin, mem_targetsE] at hE
     simp [h1, h2] at h_cov1 h_cov2
-    apply disjoint_label_W_E (m := m) (u := u) (v := v) (bw := p1) (be := p2)
-      (hbw := hW.1.1) (hbw_pos := hW.2) (hbe_bound := hE.2)
-      (h_u_mono := h_u_mono) (h_v_mono := h_v_mono) (h_u_inj := h_u_inj)
-      (h_w_in := h_cov1) (h_e_in := h_cov2) (h_bw_reg := hW.1.2) (h_be_reg := hE.1.2)
-  · have hW := props1.1 h1; have hS := props2.2.2.2 h2
+    have fw := source_on_face_W m p1 hW.1.1 hW.2 h_cov1
+    have fe := source_on_face_E m p2 hE.1.1 hE.2 h_cov2
+    -- p1 on top: py p1 = y_max + 1; p2 on bottom: y_min = py p2 + 1
+    -- So py p2 < py p1. We need chain witnesses from both u and v.
+    obtain ⟨h_bw_u, h_bw_v⟩ := (mem_regionWExtend u v p1).mp hW.1.2
+    obtain ⟨h_be_u, h_be_v⟩ := (mem_regionEExtend u v p2).mp hE.1.2
+    rcases (mem_u_lower u p1).mp h_bw_u with ⟨u1, hu1_mem, hu1_x, hu1_y⟩
+    rcases (mem_u_upper u p2).mp h_be_u with ⟨u2, hu2_mem, hu2_x, hu2_y⟩
+    rcases (mem_v_lower v p1).mp h_bw_v with ⟨v1, hv1_mem, hv1_x, hv1_y⟩
+    rcases (mem_v_upper v p2).mp h_be_v with ⟨v2, hv2_mem, hv2_x, hv2_y⟩
+    -- u-chain: py p1 ≤ py u1, py u2 ≤ py p2, so py u2 < py u1 → px u2 < px u1
+    -- But we need px u1 ≤ px u2 to apply u_mono. Actually:
+    -- If px u1 ≤ px u2, then py u1 ≤ py u2 (by u_mono), contradicting py u2 ≤ py p2 < py p1 ≤ py u1
+    -- So px u2 < px u1.
+    have h_u_y : py u2 < py u1 := by linarith
+    have h_u_x : px u2 < px u1 := by
+      by_contra h; push_neg at h
+      exact absurd (h_u_mono u1 hu1_mem u2 hu2_mem h) (by linarith)
+    -- v-chain: py p1 ≤ py v1, py v2 ≤ py p2
+    -- If px v1 ≤ px v2, then py v2 ≤ py v1 (by v_anti_mono), so both orderings consistent.
+    -- But we need contradiction from x-coordinates.
+    -- From u: px u2 < px u1, so px p2 ≤ px u2 < px u1 ≤ ... but we only know px u1 ≤ px p1.
+    -- Actually: px bw ≤ px u1 (wait, the region gives px u1 ≤ px bw and py bw ≤ py u1)
+    -- u_lower: u1 ∈ u with px u1 ≤ px p1 and py p1 ≤ py u1
+    -- u_upper: u2 ∈ u with px p2 ≤ px u2 and py u2 ≤ py p2
+    -- v_lower: v1 ∈ v with px p1 ≤ px v1 and py p1 ≤ py v1
+    -- v_upper: v2 ∈ v with px v2 ≤ px p2 and py v2 ≤ py p2
+    -- From x: px u2 < px u1 ≤ px p1 ≤ px v1, and px v2 ≤ px p2 ≤ px u2
+    -- So px v2 ≤ px u2 < px u1 ≤ px v1, hence px v2 < px v1
+    -- v_mono: px v2 ≤ px v1 → py v1 ≤ py v2
+    have h_v_mono := h_v_mono v2 hv2_mem v1 hv1_mem (by omega)
+    -- py v1 ≤ py v2. But py p1 ≤ py v1 and py v2 ≤ py p2, so py p1 ≤ py p2. Contradiction.
+    linarith
+  · -- W.S: bw on top face, bs on left face → chain contradiction (via v)
+    have hW := props1.1 h1; have hS := props2.2.2.2 h2
     simp only [mem_targetsWin, mem_targetsW] at hW
     simp only [mem_targetsSin, mem_targetsS] at hS
     simp [h1, h2] at h_cov1 h_cov2
-    apply disjoint_label_S_W (m := m) (v := v) (bs := p2) (bw := p1)
-      (hbs := hS.1.1) (hbw := hW.1.1) (hbs_bound := hS.2) (hbw_pos := hW.2)
-      (h_v_mono := h_v_mono) (h_v_inj := h_v_inj) (h_s_in := h_cov2) (h_w_in := h_cov1)
-    · simp only [mem_regionSExtend] at hS; exact hS.1.2.2
-    · simp only [mem_regionWExtend] at hW; exact hW.1.2.2
+    have fw := source_on_face_W m p1 hW.1.1 hW.2 h_cov1
+    have fs := source_on_face_S m p2 hS.1.1 hS.2 h_cov2
+    -- p1 top: py p1 = y_max + 1; p2 left: x_min = px p2 + 1
+    -- So px p2 < px p1 (since px p1 ≥ x_min = px p2 + 1) and py p2 < py p1
+    simp only [mem_regionWExtend] at hW; simp only [mem_regionSExtend] at hS
+    rcases (mem_v_lower v p1).mp hW.1.2.2 with ⟨v1, hv1_mem, hv1_x, hv1_y⟩
+    rcases (mem_v_upper v p2).mp hS.1.2.2 with ⟨v2, hv2_mem, hv2_x, hv2_y⟩
+    have : py v1 ≤ py v2 := h_v_mono v2 hv2_mem v1 hv1_mem (by omega)
+    linarith
   · exact absurd h2 h_not_X2
-  · have hN := props1.2.1 h1; have hW := props2.1 h2
+  · -- N.W: symmetric to W.N
+    have hN := props1.2.1 h1; have hW := props2.1 h2
     simp only [mem_targetsWin, mem_targetsW] at hW
     simp only [mem_targetsNin, mem_targetsN] at hN
     simp [h1, h2] at h_cov1 h_cov2
-    apply disjoint_label_W_N (m := m) (u := u) (bw := p2) (bn := p1)
-      (hbw := hW.1.1) (hbn := hN.1.1) (hbw_pos := hW.2) (hbn_pos := hN.2)
-      (h_u_mono := h_u_mono) (h_u_inj := h_u_inj) (h_w_in := h_cov2) (h_n_in := h_cov1)
-    · simp only [mem_regionWExtend] at hW; exact hW.1.2.1
-    · simp only [mem_regionNExtend] at hN; exact hN.1.2.1
-  · have hp1 := props1.2.1 h1; have hp2 := props2.2.1 h2
+    have fn := source_on_face_N m p1 hN.1.1 hN.2 h_cov1
+    have fw := source_on_face_W m p2 hW.1.1 hW.2 h_cov2
+    simp only [mem_regionWExtend] at hW; simp only [mem_regionNExtend] at hN
+    rcases (mem_u_lower u p2).mp hW.1.2.1 with ⟨u1, hu1_mem, hu1_x, hu1_y⟩
+    rcases (mem_u_upper u p1).mp hN.1.2.1 with ⟨u2, hu2_mem, hu2_x, hu2_y⟩
+    have : py u1 ≤ py u2 := h_u_mono u1 hu1_mem u2 hu2_mem (by omega)
+    linarith
+  · -- N.N: both on right face → px equal → same source, contradiction
+    have hp1 := props1.2.1 h1; have hp2 := props2.2.1 h2
     simp only [mem_targetsNin, mem_targetsN] at hp1 hp2
     simp [h1, h2] at h_cov1 h_cov2
-    have h_p_ne : p1 ≠ p2 := Label.source_ne_of_ne h_ne (by rw [h1, h2])
-    exact unique_label_N (m := m) (p := p1) (q := p2) (hp := hp1.1.1) (hq := hp2.1.1)
-      (h_ne := h_p_ne) (hp_pos := hp1.2) (hq_pos := hp2.2)
-      (hp_in := h_cov1) (hq_in := h_cov2) (h_unique_x := h_uniq_x)
-  · have hN := props1.2.1 h1; have hE := props2.2.2.1 h2
+    have f1 := source_on_face_N m p1 hp1.1.1 hp1.2 h_cov1
+    have f2 := source_on_face_N m p2 hp2.1.1 hp2.2 h_cov2
+    exact Label.source_ne_of_ne h_ne (by rw [h1, h2])
+      (h_uniq_x p1 hp1.1.1 p2 hp2.1.1 (by omega))
+  · -- N.E: bn on right face, be on bottom face → chain contradiction (via v)
+    have hN := props1.2.1 h1; have hE := props2.2.2.1 h2
     simp only [mem_targetsNin, mem_targetsN] at hN
     simp only [mem_targetsEin, mem_targetsE] at hE
     simp [h1, h2] at h_cov1 h_cov2
-    apply disjoint_label_E_N (m := m) (v := v) (be := p2) (bn := p1)
-      (hbe := hE.1.1) (hbn := hN.1.1) (hbe_bound := hE.2) (hbn_pos := hN.2)
-      (h_v_mono := h_v_mono) (h_v_inj := h_v_inj) (h_e_in := h_cov2) (h_n_in := h_cov1)
-    · simp only [mem_regionEExtend] at hE; exact hE.1.2.2
-    · simp only [mem_regionNExtend] at hN; exact hN.1.2.2
-  · have hN := props1.2.1 h1; have hS := props2.2.2.2 h2
+    have fn := source_on_face_N m p1 hN.1.1 hN.2 h_cov1
+    have fe := source_on_face_E m p2 hE.1.1 hE.2 h_cov2
+    -- p1 right: px p1 = x_max + 1; p2 bottom: y_min = py p2 + 1
+    -- So px p2 < px p1 and py p1 < py p2 + 1 = y_min ≤ py p1? No:
+    -- py p1 ∈ [y_min, y_max] and y_min = py p2 + 1, so py p2 + 1 ≤ py p1, i.e. py p2 < py p1
+    simp only [mem_regionEExtend] at hE; simp only [mem_regionNExtend] at hN
+    rcases (mem_v_upper v p2).mp hE.1.2.2 with ⟨v1, hv1_mem, hv1_x, hv1_y⟩
+    rcases (mem_v_lower v p1).mp hN.1.2.2 with ⟨v2, hv2_mem, hv2_x, hv2_y⟩
+    have : py v2 ≤ py v1 := h_v_mono v1 hv1_mem v2 hv2_mem (by omega)
+    linarith
+  · -- N.S: opposite faces (right/left) → chain contradiction
+    have hN := props1.2.1 h1; have hS := props2.2.2.2 h2
     simp only [mem_targetsNin, mem_targetsN] at hN
     simp only [mem_targetsSin, mem_targetsS] at hS
     simp [h1, h2] at h_cov1 h_cov2
-    apply disjoint_label_N_S (m := m) (u := u) (v := v) (bn := p1) (bs := p2)
-      (hbn := hN.1.1) (hbn_pos := hN.2) (hbs_bound := hS.2)
-      (h_u_mono := h_u_mono) (h_v_mono := h_v_mono) (h_v_inj := h_v_inj)
-      (h_n_in := h_cov1) (h_s_in := h_cov2) (h_bn_reg := hN.1.2) (h_bs_reg := hS.1.2)
+    have fn := source_on_face_N m p1 hN.1.1 hN.2 h_cov1
+    have fs := source_on_face_S m p2 hS.1.1 hS.2 h_cov2
+    -- p1 right: px p1 = x_max + 1; p2 left: x_min = px p2 + 1
+    obtain ⟨h_bn_u, h_bn_v⟩ := (mem_regionNExtend u v p1).mp hN.1.2
+    obtain ⟨h_bs_u, h_bs_v⟩ := (mem_regionSExtend u v p2).mp hS.1.2
+    rcases (mem_u_upper u p1).mp h_bn_u with ⟨u1, hu1_mem, hu1_x, hu1_y⟩
+    rcases (mem_u_lower u p2).mp h_bs_u with ⟨u2, hu2_mem, hu2_x, hu2_y⟩
+    rcases (mem_v_lower v p1).mp h_bn_v with ⟨v1, hv1_mem, hv1_x, hv1_y⟩
+    rcases (mem_v_upper v p2).mp h_bs_v with ⟨v2, hv2_mem, hv2_x, hv2_y⟩
+    -- u-chain: px u2 ≤ px p2 < px p1 ≤ px u1 → px u2 ≤ px u1
+    have h_u_x : px u2 ≤ px u1 := by omega
+    have h_u_y : py u2 ≤ py u1 := h_u_mono u2 hu2_mem u1 hu1_mem h_u_x
+    -- v-chain: py v2 ≤ py p2 and py p1 ≤ py v1
+    -- From u: py u1 ≤ py p1 and py p2 ≤ py u2, combined with h_u_y: py p2 ≤ py u2 ≤ py u1 ≤ py p1
+    -- So py v2 ≤ py p2 ≤ py p1 ≤ py v1
+    have h_v_y : py v2 ≤ py v1 := by linarith
+    -- If px v1 < px v2, v_mono gives py v2 ≤ py v1, which is fine.
+    -- We need: px v1 ≤ px v2 from somewhere to get contradiction.
+    -- px v1 ≥ px p1 = x_max + 1 and px v2 ≤ px p2. px p2 ≤ x_max (from fs: x_min = px p2 + 1 ≤ x_max... wait)
+    -- Actually px p2 + 1 = x_min ≤ x_max, so px p2 ≤ x_max - 1 < x_max < x_max + 1 = px p1
+    -- px v2 ≤ px p2 ≤ x_max - 1 and px p1 ≤ px v1
+    -- So px v2 < px v1 → v_mono: py v1 ≤ py v2 → combined with py v2 ≤ py v1: py v1 = py v2
+    -- Then v_inj: v1 = v2, so px v1 = px v2, contradicting px v2 < px v1
+    have h_v_x : px v2 ≤ px v1 := by omega
+    have h_v_anti : py v1 ≤ py v2 := h_v_mono v2 hv2_mem v1 hv1_mem h_v_x
+    have h_v_y_eq : py v1 = py v2 := by omega
+    have h_v_eq : v1 = v2 := h_v_inj v1 hv1_mem v2 hv2_mem h_v_y_eq
+    rw [h_v_eq] at hv1_x; omega
   · exact absurd h2 h_not_X2
-  · have hE := props1.2.2.1 h1; have hW := props2.1 h2
+  · -- E.W: symmetric to W.E
+    have hE := props1.2.2.1 h1; have hW := props2.1 h2
     simp only [mem_targetsEin, mem_targetsE] at hE
     simp only [mem_targetsWin, mem_targetsW] at hW
     simp [h1, h2] at h_cov1 h_cov2
-    exact disjoint_label_W_E (m := m) (u := u) (v := v) (bw := p2) (be := p1)
-      (hbw := hW.1.1) (hbw_pos := hW.2) (hbe_bound := hE.2)
-      (h_u_mono := h_u_mono) (h_v_mono := h_v_mono) (h_u_inj := h_u_inj)
-      (h_w_in := h_cov2) (h_e_in := h_cov1) (h_bw_reg := hW.1.2) (h_be_reg := hE.1.2)
-  · have hE := props1.2.2.1 h1; have hN := props2.2.1 h2
+    have fe := source_on_face_E m p1 hE.1.1 hE.2 h_cov1
+    have fw := source_on_face_W m p2 hW.1.1 hW.2 h_cov2
+    obtain ⟨h_bw_u, h_bw_v⟩ := (mem_regionWExtend u v p2).mp hW.1.2
+    obtain ⟨h_be_u, h_be_v⟩ := (mem_regionEExtend u v p1).mp hE.1.2
+    rcases (mem_u_lower u p2).mp h_bw_u with ⟨u1, hu1_mem, hu1_x, hu1_y⟩
+    rcases (mem_u_upper u p1).mp h_be_u with ⟨u2, hu2_mem, hu2_x, hu2_y⟩
+    rcases (mem_v_lower v p2).mp h_bw_v with ⟨v1, hv1_mem, hv1_x, hv1_y⟩
+    rcases (mem_v_upper v p1).mp h_be_v with ⟨v2, hv2_mem, hv2_x, hv2_y⟩
+    have h_u_y : py u2 < py u1 := by linarith
+    have h_u_x : px u2 < px u1 := by
+      by_contra h; push_neg at h
+      exact absurd (h_u_mono u1 hu1_mem u2 hu2_mem h) (by linarith)
+    have h_v_mono := h_v_mono v2 hv2_mem v1 hv1_mem (by omega)
+    linarith
+  · -- E.N: symmetric to N.E
+    have hE := props1.2.2.1 h1; have hN := props2.2.1 h2
     simp only [mem_targetsEin, mem_targetsE] at hE
     simp only [mem_targetsNin, mem_targetsN] at hN
     simp [h1, h2] at h_cov1 h_cov2
-    apply disjoint_label_E_N (m := m) (v := v) (be := p1) (bn := p2)
-      (hbe := hE.1.1) (hbn := hN.1.1) (hbe_bound := hE.2) (hbn_pos := hN.2)
-      (h_v_mono := h_v_mono) (h_v_inj := h_v_inj) (h_e_in := h_cov1) (h_n_in := h_cov2)
-    · simp only [mem_regionEExtend] at hE; exact hE.1.2.2
-    · simp only [mem_regionNExtend] at hN; exact hN.1.2.2
-  · have hp1 := props1.2.2.1 h1; have hp2 := props2.2.2.1 h2
+    have fe := source_on_face_E m p1 hE.1.1 hE.2 h_cov1
+    have fn := source_on_face_N m p2 hN.1.1 hN.2 h_cov2
+    simp only [mem_regionEExtend] at hE; simp only [mem_regionNExtend] at hN
+    rcases (mem_v_upper v p1).mp hE.1.2.2 with ⟨v1, hv1_mem, hv1_x, hv1_y⟩
+    rcases (mem_v_lower v p2).mp hN.1.2.2 with ⟨v2, hv2_mem, hv2_x, hv2_y⟩
+    have : py v2 ≤ py v1 := h_v_mono v1 hv1_mem v2 hv2_mem (by omega)
+    linarith
+  · -- E.E: both on bottom face → py equal → same source, contradiction
+    have hp1 := props1.2.2.1 h1; have hp2 := props2.2.2.1 h2
     simp only [mem_targetsEin, mem_targetsE] at hp1 hp2
     simp [h1, h2] at h_cov1 h_cov2
-    have h_p_ne : p1 ≠ p2 := Label.source_ne_of_ne h_ne (by rw [h1, h2])
-    exact unique_label_E (m := m) (p := p1) (q := p2) (hp := hp1.1.1) (hq := hp2.1.1)
-      (h_ne := h_p_ne) (hp_bound := hp1.2) (hq_bound := hp2.2)
-      (hp_in := h_cov1) (hq_in := h_cov2) (h_unique_y := h_uniq_y)
-  · have hE := props1.2.2.1 h1; have hS := props2.2.2.2 h2
+    have f1 := source_on_face_E m p1 hp1.1.1 hp1.2 h_cov1
+    have f2 := source_on_face_E m p2 hp2.1.1 hp2.2 h_cov2
+    exact Label.source_ne_of_ne h_ne (by rw [h1, h2])
+      (h_uniq_y p1 hp1.1.1 p2 hp2.1.1 (by omega))
+  · -- E.S: be on bottom face, bs on left face → chain contradiction (via u)
+    have hE := props1.2.2.1 h1; have hS := props2.2.2.2 h2
     simp only [mem_targetsEin, mem_targetsE] at hE
     simp only [mem_targetsSin, mem_targetsS] at hS
     simp [h1, h2] at h_cov1 h_cov2
-    apply disjoint_label_E_S (m := m) (u := u) (be := p1) (bs := p2)
-      (hbe := hE.1.1) (hbs := hS.1.1) (hbe_bound := hE.2) (hbs_bound := hS.2)
-      (h_u_mono := h_u_mono) (h_u_inj := h_u_inj) (h_e_in := h_cov1) (h_s_in := h_cov2)
-    · simp only [mem_regionEExtend] at hE; exact hE.1.2.1
-    · simp only [mem_regionSExtend] at hS; exact hS.1.2.1
+    have fe := source_on_face_E m p1 hE.1.1 hE.2 h_cov1
+    have fs := source_on_face_S m p2 hS.1.1 hS.2 h_cov2
+    -- p1 bottom: y_min = py p1 + 1; p2 left: x_min = px p2 + 1
+    -- px p1 ≥ x_min = px p2 + 1, so px p2 < px p1
+    -- py p2 ≥ y_min = py p1 + 1, so py p1 < py p2
+    simp only [mem_regionEExtend] at hE; simp only [mem_regionSExtend] at hS
+    rcases (mem_u_upper u p1).mp hE.1.2.1 with ⟨u1, hu1_mem, hu1_x, hu1_y⟩
+    rcases (mem_u_lower u p2).mp hS.1.2.1 with ⟨u2, hu2_mem, hu2_x, hu2_y⟩
+    have : py u2 ≤ py u1 := h_u_mono u2 hu2_mem u1 hu1_mem (by omega)
+    linarith
   · exact absurd h2 h_not_X2
-  · have hS := props1.2.2.2 h1; have hW := props2.1 h2
+  · -- S.W: symmetric to W.S
+    have hS := props1.2.2.2 h1; have hW := props2.1 h2
     simp only [mem_targetsSin, mem_targetsS] at hS
     simp only [mem_targetsWin, mem_targetsW] at hW
     simp [h1, h2] at h_cov1 h_cov2
-    apply disjoint_label_S_W (m := m) (v := v) (bs := p1) (bw := p2)
-      (hbs := hS.1.1) (hbw := hW.1.1) (hbs_bound := hS.2) (hbw_pos := hW.2)
-      (h_v_mono := h_v_mono) (h_v_inj := h_v_inj) (h_s_in := h_cov1) (h_w_in := h_cov2)
-    · simp only [mem_regionSExtend] at hS; exact hS.1.2.2
-    · simp only [mem_regionWExtend] at hW; exact hW.1.2.2
-  · have hS := props1.2.2.2 h1; have hN := props2.2.1 h2
+    have fs := source_on_face_S m p1 hS.1.1 hS.2 h_cov1
+    have fw := source_on_face_W m p2 hW.1.1 hW.2 h_cov2
+    simp only [mem_regionSExtend] at hS; simp only [mem_regionWExtend] at hW
+    rcases (mem_v_upper v p1).mp hS.1.2.2 with ⟨v2, hv2_mem, hv2_x, hv2_y⟩
+    rcases (mem_v_lower v p2).mp hW.1.2.2 with ⟨v1, hv1_mem, hv1_x, hv1_y⟩
+    have : py v1 ≤ py v2 := h_v_mono v2 hv2_mem v1 hv1_mem (by omega)
+    linarith
+  · -- S.N: symmetric to N.S
+    have hS := props1.2.2.2 h1; have hN := props2.2.1 h2
     simp only [mem_targetsSin, mem_targetsS] at hS
     simp only [mem_targetsNin, mem_targetsN] at hN
     simp [h1, h2] at h_cov1 h_cov2
-    apply disjoint_label_N_S (m := m) (u := u) (v := v) (bn := p2) (bs := p1)
-      (hbn := hN.1.1) (hbn_pos := hN.2) (hbs_bound := hS.2)
-      (h_u_mono := h_u_mono) (h_v_mono := h_v_mono) (h_v_inj := h_v_inj)
-      (h_n_in := h_cov2) (h_s_in := h_cov1) (h_bn_reg := hN.1.2) (h_bs_reg := hS.1.2)
-  · have hS := props1.2.2.2 h1; have hE := props2.2.2.1 h2
+    have fs := source_on_face_S m p1 hS.1.1 hS.2 h_cov1
+    have fn := source_on_face_N m p2 hN.1.1 hN.2 h_cov2
+    obtain ⟨h_bn_u, h_bn_v⟩ := (mem_regionNExtend u v p2).mp hN.1.2
+    obtain ⟨h_bs_u, h_bs_v⟩ := (mem_regionSExtend u v p1).mp hS.1.2
+    rcases (mem_u_upper u p2).mp h_bn_u with ⟨u1, hu1_mem, hu1_x, hu1_y⟩
+    rcases (mem_u_lower u p1).mp h_bs_u with ⟨u2, hu2_mem, hu2_x, hu2_y⟩
+    rcases (mem_v_lower v p2).mp h_bn_v with ⟨v1, hv1_mem, hv1_x, hv1_y⟩
+    rcases (mem_v_upper v p1).mp h_bs_v with ⟨v2, hv2_mem, hv2_x, hv2_y⟩
+    have h_u_x : px u2 ≤ px u1 := by omega
+    have h_u_y : py u2 ≤ py u1 := h_u_mono u2 hu2_mem u1 hu1_mem h_u_x
+    have h_v_x : px v2 ≤ px v1 := by omega
+    have h_v_anti : py v1 ≤ py v2 := h_v_mono v2 hv2_mem v1 hv1_mem h_v_x
+    have h_v_y_eq : py v1 = py v2 := by omega
+    have h_v_eq : v1 = v2 := h_v_inj v1 hv1_mem v2 hv2_mem h_v_y_eq
+    rw [h_v_eq] at hv1_x; omega
+  · -- S.E: symmetric to E.S
+    have hS := props1.2.2.2 h1; have hE := props2.2.2.1 h2
     simp only [mem_targetsSin, mem_targetsS] at hS
     simp only [mem_targetsEin, mem_targetsE] at hE
     simp [h1, h2] at h_cov1 h_cov2
-    apply disjoint_label_E_S (m := m) (u := u) (be := p2) (bs := p1)
-      (hbe := hE.1.1) (hbs := hS.1.1) (hbe_bound := hE.2) (hbs_bound := hS.2)
-      (h_u_mono := h_u_mono) (h_u_inj := h_u_inj) (h_e_in := h_cov2) (h_s_in := h_cov1)
-    · simp only [mem_regionEExtend] at hE; exact hE.1.2.1
-    · simp only [mem_regionSExtend] at hS; exact hS.1.2.1
-  · have hp1 := props1.2.2.2 h1; have hp2 := props2.2.2.2 h2
+    have fs := source_on_face_S m p1 hS.1.1 hS.2 h_cov1
+    have fe := source_on_face_E m p2 hE.1.1 hE.2 h_cov2
+    simp only [mem_regionEExtend] at hE; simp only [mem_regionSExtend] at hS
+    rcases (mem_u_upper u p2).mp hE.1.2.1 with ⟨u1, hu1_mem, hu1_x, hu1_y⟩
+    rcases (mem_u_lower u p1).mp hS.1.2.1 with ⟨u2, hu2_mem, hu2_x, hu2_y⟩
+    have : py u2 ≤ py u1 := h_u_mono u2 hu2_mem u1 hu1_mem (by omega)
+    linarith
+  · -- S.S: both on left face → px equal → same source, contradiction
+    have hp1 := props1.2.2.2 h1; have hp2 := props2.2.2.2 h2
     simp only [mem_targetsSin, mem_targetsS] at hp1 hp2
     simp [h1, h2] at h_cov1 h_cov2
-    have h_p_ne : p1 ≠ p2 := Label.source_ne_of_ne h_ne (by rw [h1, h2])
-    exact unique_label_S (m := m) (p := p1) (q := p2) (hp := hp1.1.1) (hq := hp2.1.1)
-      (h_ne := h_p_ne) (hp_bound := hp1.2) (hq_bound := hp2.2)
-      (hp_in := h_cov1) (hq_in := h_cov2) (h_unique_x := h_uniq_x)
+    have f1 := source_on_face_S m p1 hp1.1.1 hp1.2 h_cov1
+    have f2 := source_on_face_S m p2 hp2.1.1 hp2.2 h_cov2
+    exact Label.source_ne_of_ne h_ne (by rw [h1, h2])
+      (h_uniq_x p1 hp1.1.1 p2 hp2.1.1 (by omega))
   · exact absurd h2 h_not_X2
   case X.W | X.N | X.E | X.S | X.X =>
     exact absurd h1 h_not_X1

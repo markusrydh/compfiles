@@ -31,7 +31,7 @@ theorem Nat.ceilDiv_pos (a b : ℕ) (apos : 0 < a) (bpos : 0 < b) : 0 < a ⌈/�
 
 variable {M N : ℕ}
 
-abbrev Name : Type := @Finset.Icc ℤ _ _ 1 M
+abbrev Name : Type := Finset.Icc (1 : ℤ) M
 
 variable (C : @Name M → Fin N)
 

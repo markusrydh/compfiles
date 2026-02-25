@@ -3012,12 +3012,12 @@ lemma rect_subset_M (s t : Int) (p : Point n)
         _ ≤ p.1 + k * p.2 + k := by
             dsimp [val_s]; simp; gcongr
         _ = val_s k p - 1 := by ring
-        _ < val_s k p := by linarith
+        _ < val_s k p := by simp
     · calc val_s k p
         _ = p.1 + k * p.2 + k + 1 := rfl
         _ ≤ ((s - 1) + t * k) + k * ((s + 1) * k - t - 1) + k + 1 := by gcongr
         _ = s * M + k^2 := by dsimp [M]; ring
-        _ < s * M + (k^2 + 1) := by linarith
+        _ < s * M + (k^2 + 1) := by simp
         _ = (s + 1) * M := by dsimp [M]; ring
   have h_val_t_strict : t * M < val_t k p ∧ val_t k p < (t + 1) * M := by
     constructor
@@ -3026,7 +3026,7 @@ lemma rect_subset_M (s t : Int) (p : Point n)
              dsimp [val_t, M]; ring
         _ ≤ k * p.1 - p.2 + k^2 + k - 1 := by gcongr
         _ = val_t k p - 1 := by ring
-        _ < val_t k p := by linarith
+        _ < val_t k p := by simp
     · calc val_t k p
         _ = k * p.1 - p.2 + k^2 + k := rfl
         _ ≤ k * ((s - 1) + t * k) - (s * k - t) + k^2 + k := by gcongr

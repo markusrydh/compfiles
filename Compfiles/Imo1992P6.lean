@@ -1037,8 +1037,7 @@ theorem imo1992_p6_c : {n | S n = n^2 - 14}.Infinite := by
     · apply this
       simp
     · calc
-        _ < 13*a := by
-          simp_all only [lt_mul_iff_one_lt_left', PNat.ofNat_lt_ofNat, Nat.one_lt_ofNat]
+        _ < 13*a := by simp
         _ ≤ _ := by
           apply Nat.mul_le_pow
           exact Nat.add_one_add_one_ne_one

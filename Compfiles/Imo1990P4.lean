@@ -269,12 +269,7 @@ def PRat.mk_mul_hom_fun (g : ℕ → ℚ+) : ℚ+ →* ℚ+ := {
     rw [<-map_mul]
     rw [<-map_mul]
 
-    rw [<-PNat.mk_mul_hom_fun.cancel _ _ (by simp) _ _ ⟨(a.val.num * b.val.num).natAbs.gcd (a.val.den * b.val.den), by {
-      simp only [Nat.gcd_pos_iff, Int.natAbs_pos, ne_eq, mul_eq_zero, Rat.num_eq_zero, not_or,
-        CanonicallyOrderedAdd.mul_pos]
-      apply Or.inl
-      and_intros <;> exact Rat.ne_of_gt (Subtype.prop _)
-    }⟩]
+    rw [←PNat.mk_mul_hom_fun.cancel _ _ (by simp) _ _ ⟨(a.val.num * b.val.num).natAbs.gcd (a.val.den * b.val.den), by positivity⟩]
     simp only [Positive.val_mul]
     simp_rw [Rat.den_mul]
     have (a b : ℕ) (apos : 0 < a) (dvd : b ∣ a) (h1 : _) (h2 : _)

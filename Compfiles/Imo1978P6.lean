@@ -256,17 +256,14 @@ theorem imo1978_p6_alt (C : @Name 1978 → Fin 6) :
 
 snip end
 
-problem imo1978_p6 (C : Fin 1978 → Fin 6) :
-  ∃ j : Fin 1978, ∃ i : Fin 1978, ∃ k : Fin 1978,
-    C i = C j ∧
-    C j = C k ∧
-    (i:ℕ) + 1 + (k:ℕ) + 1 = (j:ℕ) + 1 := by
-  let C' : @Name 1978 → Fin 6 := fun i => C ⟨i.val.toNat-1, by grind⟩
-  have ⟨j,i,k,h1,h2,h3⟩ := imo1978_p6_alt C'
-  use ⟨j.val.toNat-1, by grind⟩, ⟨i.val.toNat-1, by grind⟩, ⟨k.val.toNat-1, by grind⟩
-  grind
-
-
-
+problem imo1978_p6 (C : Finset.Icc 1 1978 → Fin 6) :
+  ∃ j i k, C i = C j ∧ C j = C k ∧ i.val + k.val = j.val := by
+  have hmem : ∀ (i : @Name 1978), (i : ℤ).toNat ∈ Finset.Icc 1 1978 := by
+    intro ⟨_, hv⟩; simp only [Finset.mem_Icc] at hv ⊢; lia
+  let C' : @Name 1978 → Fin 6 := fun i => C ⟨(i : ℤ).toNat, hmem i⟩
+  obtain ⟨j, i, k, h1, h2, h3⟩ := imo1978_p6_alt C'
+  refine ⟨⟨_, hmem j⟩, ⟨_, hmem i⟩, ⟨_, hmem k⟩, h1, h2, ?_⟩
+  have := i.property; have := k.property; have := j.property
+  simp only [Finset.mem_Icc] at *; lia
 
 end Imo1978P6

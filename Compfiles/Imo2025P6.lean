@@ -844,7 +844,7 @@ lemma matilda_covers_at_most_one_core {n : ℕ} [NeZero n]
     (h_uniq_y : ∀ p ∈ all_black, ∀ q ∈ all_black, py p = py q → p = q)
     (h_u_mono : ∀ a ∈ u, ∀ b ∈ u, px a ≤ px b → py a ≤ py b)
     (h_v_mono : ∀ a ∈ v, ∀ b ∈ v, px a ≤ px b → py b ≤ py a)
-    (h_u_inj : ∀ a ∈ u, ∀ b ∈ u, py a = py b → a = b)
+    (_h_u_inj : ∀ a ∈ u, ∀ b ∈ u, py a = py b → a = b)
     (h_v_inj : ∀ a ∈ v, ∀ b ∈ v, py a = py b → a = b)
     (m : Matilda n all_black) (l1 l2 : Label n)
     (h_ne : l1 ≠ l2) (h_cov1 : m.mem (label_pos l1).2) (h_cov2 : m.mem (label_pos l2).2)

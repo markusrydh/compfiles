@@ -88,10 +88,6 @@ lemma build_condition_divisibility {n} : (2 * n + 3) + (2 * n + 5) ∣
         ≡ (2 * n + 3) + (2 * n + 5) [MOD m] :=
     Nat.ModEq.add h3_5 h5_3
 
-  have h_m0 : (4 * n + 8) ≡ 0 [MOD m] := by
-    have : (4 * n + 8) = (4 * n + 8) * 1 := by rw [mul_one]
-    rw [this]
-    apply @Nat.ModEq.modulus_mul_add (4 * n + 8) 1 0
   have h_ab0 : (2 * n + 3) + (2 * n + 5) ≡ 0 [MOD m] := by
     have hm : (2 * n + 3) + (2 * n + 5) = 4 * n + 8 := by ring
     simp [m, hm]

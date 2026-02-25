@@ -187,10 +187,7 @@ problem imo1996_p6 {p q n : ℕ} (x : ℕ → ℤ)
     unfold d
     have : x (i + h) - x i = ∑ j ∈ Finset.Ico i (i + h), (x (j + 1) - x j) := by
       have hlt : i ≤ i + h := by lia
-      rw [←h_tsum_i (i + h), ←h_tsum_i, sub_eq_iff_eq_add]
-      conv_rhs =>
-        rw [add_comm]
-      rw [Finset.sum_range_add_sum_Ico (fun j ↦ x (j + 1) - x j) hlt]
+      exact (Finset.sum_Ico_sub x hlt).symm
     have : ∃t : ℕ, ∑ j ∈ Finset.Ico i (i + h), (x (j + 1) - x j) = t * p + (h - t) * (-q) := by
       have : ∀ j ∈ Finset.Ico i (i + h), x (j + 1) - x j = p ∨ x (j + 1) - x j = -q := by
         intro j hj

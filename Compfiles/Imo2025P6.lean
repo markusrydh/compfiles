@@ -1982,19 +1982,15 @@ lemma pivot_no_black (cp : CrossingPoints c) :
           have h_qx_le : px q ≤ px uk := by
             by_contra h_gt; push_neg at h_gt
             exact c.u_not_between_uk_uk1 cp q hq ⟨h_gt, lt_trans hq_lt_p h_px_u_lt⟩
-          have : py q ≤ py uk := by
-            rcases lt_or_eq_of_le h_qx_le with h_lt | h_eq
-            · exact le_of_lt (c.h_u_mono q hq uk mem_uk h_lt)
-            · rw [c.h_u_inj q hq uk mem_uk h_eq]
+          have : py q ≤ py uk :=
+            BaseSetup.u_mono_le c.toBaseSetup q hq uk mem_uk h_qx_le
           exact lt_of_le_of_lt this h_py_strict
         · intro q hq hp_lt_q
           have h_qx_ge : px uk1 ≤ px q := by
             by_contra h_lt; push_neg at h_lt
             exact c.u_not_between_uk_uk1 cp q hq ⟨lt_trans h_px_strict hp_lt_q, h_lt⟩
-          have : py uk1 ≤ py q := by
-            rcases lt_or_eq_of_le h_qx_ge with h_lt | h_eq
-            · exact le_of_lt (c.h_u_mono uk1 mem_uk1 q hq h_lt)
-            · rw [c.h_u_inj uk1 mem_uk1 q hq h_eq]
+          have : py uk1 ≤ py q :=
+            BaseSetup.u_mono_le c.toBaseSetup uk1 mem_uk1 q hq h_qx_ge
           exact lt_of_lt_of_le h_py_u_lt this
       · exact c.h_unique_y p hp_blk uk (c.hu_sub mem_uk) h_py_eq.symm
     · exact c.h_unique_x p hp_blk uk (c.hu_sub mem_uk) h_px_eq.symm
@@ -2009,10 +2005,8 @@ lemma pivot_no_black (cp : CrossingPoints c) :
           have h_qx_le : px q ≤ px vl := by
             by_contra h_gt; push_neg at h_gt
             exact c.v_not_between_vl_vl1 cp q hq ⟨h_gt, lt_trans hq_lt_p h_px_v_lt⟩
-          have : py vl ≤ py q := by
-             rcases lt_or_eq_of_le h_qx_le with h_lt | h_eq
-             · exact le_of_lt (c.h_v_mono q hq vl mem_vl h_lt)
-             · rw [c.h_v_inj q hq vl mem_vl h_eq]
+          have : py vl ≤ py q :=
+            BaseSetup.v_mono_le c.toBaseSetup q hq vl mem_vl h_qx_le
           exact lt_of_lt_of_le h_py_v_lt this
         · intro q hq hp_lt_q
           have h_qx_ge : px vl1 ≤ px q := by

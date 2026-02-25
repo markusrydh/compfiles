@@ -447,17 +447,7 @@ lemma contradiction_of_finset_icc_1_6 (s1 s2 : Finset ℕ) (partition : s1 ∪ s
       have five_not_in_s2 : Disjoint s2 {5} := by
         have s1_s2_disjoint : Disjoint s1 s2 := Finset.disjoint_iff_inter_eq_empty.mpr disjoint
         simp_all only [Finset.disjoint_singleton_right]
-        intro five_in_s2
-        dsimp[Disjoint] at s1_s2_disjoint
-        have five_set_in_s1 : {5} ⊆ s1 := by
-          simp_all only [Finset.singleton_subset_iff]
-        have five_set_in_s2 : {5} ⊆ s2 := by
-          simp_all only [Finset.singleton_subset_iff]
-        have set_five_in_empty := s1_s2_disjoint five_set_in_s1 five_set_in_s2
-        have : ({5} : Finset ℕ).Nonempty := by
-          simp_all only [Finset.singleton_subset_iff, Finset.singleton_nonempty]
-        apply not_empty_subst_of_nonempty {5} this
-        exact set_five_in_empty
+        exact s1_s2_disjoint.notMem_of_mem_left_finset five_in_s1
       have explicit_interval: Finset.Icc 1 6 = {1, 2, 3, 4, 5, 6} := by
         rfl
       have := diffs_of_disjoint s2 (s1 ∪ s2) {5} s2_in_s1_s2 five_not_in_s2
@@ -490,17 +480,7 @@ lemma contradiction_of_finset_icc_1_6 (s1 s2 : Finset ℕ) (partition : s1 ∪ s
           exact disjoint
         have s2_s1_disjoint : Disjoint s2 s1 := Finset.disjoint_iff_inter_eq_empty.mpr this
         simp_all only [Finset.disjoint_singleton_right]
-        intro five_in_s
-        dsimp[Disjoint] at s2_s1_disjoint
-        have five_set_in_s1 : {5} ⊆ s1 := by
-          simp_all only [Finset.singleton_subset_iff]
-        have five_set_in_s2 : {5} ⊆ s2 := by
-          simp_all only [Finset.singleton_subset_iff]
-        have set_five_in_empty := s2_s1_disjoint five_set_in_s2 five_set_in_s1
-        have : ({5} : Finset ℕ).Nonempty := by
-          simp_all only [Finset.singleton_subset_iff, Finset.singleton_nonempty]
-        apply not_empty_subst_of_nonempty {5} this
-        exact set_five_in_empty
+        exact s2_s1_disjoint.notMem_of_mem_left_finset five_in_s2
       have explicit_interval: Finset.Icc 1 6 = {1, 2, 3, 4, 5, 6} := by
         rfl
       have := diffs_of_disjoint s1 (s2 ∪ s1) {5} s1_in_s2_s1 five_not_in_s1

@@ -140,10 +140,7 @@ lemma aux_recursive (I : Finset (Fin 8)) (a : Fin 8 → ℝ)
           intro i hi
           have hp_pow_odd_n : ∀ i n, Odd n → p i = p i^n := by
             intro i n h_odd
-            rcases SignType.trichotomy (p i) with hneg | hzero | hpos
-            · simp [hneg, Odd.neg_one_pow h_odd]
-            · exact Eq.symm (SignType.pow_odd (p i) h_odd)
-            · simp [hpos]
+            exact (SignType.pow_odd (p i) h_odd).symm
           calc
             a i^n = ((p i) * amax)^n := by simp [h_eq i hi]
             _ = p i^n * amax^n := mul_pow ↑(p i) amax n

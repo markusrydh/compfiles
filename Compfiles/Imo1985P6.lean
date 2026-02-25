@@ -104,10 +104,7 @@ lemma aux_4
     ∀ (n : ℕ), 0 < n → StrictMono (f₀ n) := by
   intro n hn x y hxy
   rw [hf₀]
-  simp only [Real.toNNReal_lt_toNNReal_iff']
-  constructor
-  · exact h₄ n x y hn hxy
-  · exact lt_of_lt_of_le' (h₄ n x y hn hxy) (h₃ n x hn)
+  exact (Real.toNNReal_lt_toNNReal_iff_of_nonneg (h₃ n x hn)).mpr (h₄ n x y hn hxy)
 
 lemma aux_5
     (f : ℕ → NNReal → ℝ)
@@ -1082,8 +1079,7 @@ lemma imo_1985_p6_nnreal
     intro n x y hn₀
     constructor
     · intro hn₁
-      rw [← hn₁, hf₀]
-      exact aux_5 f hmo₁ f₀ hmo₂ fi rfl n x ((fun n x => (f n x).toNNReal) n x) hn₀ (hf₂ n x hn₀)
+      exact aux_5 f hmo₁ f₀ hmo₂ fi rfl n x y hn₀ hn₁
     · intro hn₁
       rw [← hn₁]
       exact hmo₁ n hn₀ (congrArg (f n) (hmo₇ n hn₀ y))

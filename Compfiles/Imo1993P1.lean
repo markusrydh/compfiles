@@ -205,12 +205,7 @@ problem imo1993_p1 : ∀ n > 1, ¬∃ p q : ℤ[X], f n = p*q ∧ ¬ isConstant 
       simp only [WithBot.coe_one, degree_eq_bot, one_ne_zero, and_false, or_false] at this
       exact this
     rw [natDegree_mul] at degbc
-    · have : n-1 ≤ b.natDegree := by
-        rw [natDegree, WithBot.le_unbotD_iff]
-        · simp [degb, ←Nat.cast_withBot]
-        · contrapose! degb
-          rw [degb]
-          exact compareOfLessAndEq_eq_lt.mp rfl
+    · have : n-1 ≤ b.natDegree := le_natDegree_of_coe_le_degree degb
       lia
     · exact ne_zero_of_coe_le_degree degb
     · exact ne_zero_of_natDegree_gt degc

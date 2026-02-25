@@ -123,8 +123,7 @@ problem imo1996P4 : solution ∈ S ∧ ∀ x ∈ S, solution ≤ x := by
             exact false_of_zero_eqMod_pos this Nat.one_pos (Nat.Prime.one_lt h₁)
           · rw [Int.modEq_zero_iff_dvd] at h_n_zero
             have h_coprime : IsCoprime ↑p n := coprime h₁ h_n_zero
-            have h_eq_one_n_pow := Int.ModEq.pow_card_sub_one_eq_one h₁ h_coprime.symm
-            exact h_eq_one_n_pow
+            exact Int.ModEq.pow_card_sub_one_eq_one h₁ h_coprime.symm
 
         have := Int.ModEq.add_right 1 (h_eq_neg_one.symm.trans this)
         simp at this

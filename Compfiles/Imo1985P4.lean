@@ -228,9 +228,8 @@ lemma prod_square_of_pow_of_first_k_prime_mod_two_eq {M : Finset ℕ} {k : ℕ}
   have hmn : pow_of_first_k_prime_mod_two (k + 1) m = pow_of_first_k_prime_mod_two (k + 1) n := by
     rcases hs₃ with ⟨f, hf⟩
     rw [hf m (by simp [hmn₂]:_), hf n (by simp [hmn₂]:_)]
-  have hm : ∀ p, p.Prime ∧ p ∣ m → p ≤ Nat.nth Nat.Prime k := Mdivisors m hm'
-  have hn : ∀ p, p.Prime ∧ p ∣ n → p ≤ Nat.nth Nat.Prime k := Mdivisors n hn'
-  exact square_of_pow_of_first_k_prime_mod_two_eq hm₀ hn₀ hmn hm hn
+  exact square_of_pow_of_first_k_prime_mod_two_eq
+          hm₀ hn₀ hmn (Mdivisors m hm') (Mdivisors n hn')
 
 lemma sqrt_prod_subset_ne_zero {M s : Finset ℕ} {k : ℕ}
     (Mpos : ∀ m ∈ M, 0 < m) (hs: s ⊆ M) (hk : s.prod id = k ^ 2) :

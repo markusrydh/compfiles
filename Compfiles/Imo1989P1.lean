@@ -64,17 +64,7 @@ lemma A_sum (i : Fin n) : (A i).sum id = 16915 := by
   simp only [Finset.sum_range_succ, Finset.sum_range_zero, id, row]
   norm_num [n]
   have hi := i.isLt; simp only [n] at hi
-  by_cases h59 : i.val < 59
-  · have h1 : (i.val + 58) % 117 = i.val + 58 := Nat.mod_eq_of_lt (by lia)
-    have h2 : (233 - 2 * i.val) % 117 = 116 - 2 * i.val := by
-      have : 233 - 2 * i.val = 117 + (116 - 2 * i.val) := by lia
-      rw [this, Nat.add_mod_left, Nat.mod_eq_of_lt (by lia)]
-    lia
-  · have h1 : (i.val + 58) % 117 = i.val - 59 := by
-      have : i.val + 58 = 117 + (i.val - 59) := by lia
-      rw [this, Nat.add_mod_left, Nat.mod_eq_of_lt (by lia)]
-    have h2 : (233 - 2 * i.val) % 117 = 233 - 2 * i.val := Nat.mod_eq_of_lt (by lia)
-    lia
+  lia
 
 lemma A_injective : Function.Injective A := by
   intro i₁ i₂ h

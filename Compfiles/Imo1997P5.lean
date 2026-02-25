@@ -71,9 +71,8 @@ problem imo1997_p5 (a b : ℕ) (ha : 0 < a) (hb : 0 < b) :
       · interval_cases b; grind
       · interval_cases d
         · simp at H
-        · have h₃ : b = 1 := by nlinarith
-          grind
-        · nlinarith
+        · lia
+        · lia
         · have h₃ : b = 3 := by nlinarith
           grind
         · have h₃ : b = 2 := by

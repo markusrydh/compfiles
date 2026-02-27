@@ -112,7 +112,7 @@ snip end
 
 determine solution : Set (ℕ × ℕ) := {⟨5, 3⟩}
 
-theorem imo2002_p3 {m n : ℕ} (hm : 3 ≤ m) (hn : 3 ≤ n) :
+problem imo2002_p3 {m n : ℕ} (hm : 3 ≤ m) (hn : 3 ≤ n) :
     ⟨m, n⟩ ∈ solution ↔
     {a : ℤ | 0 < a ∧ a ^ n + a ^ 2 - 1 ∣ a ^ m + a - 1}.Infinite := by
   simp only [solution, Set.mem_singleton_iff, Prod.mk.injEq]
